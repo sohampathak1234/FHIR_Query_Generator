@@ -8,7 +8,7 @@ from groq import Groq
 app = FastAPI()
 client = Groq(api_key="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")
 
-# Database connection function
+# Function to establish connection to the PostgreSQL database
 def connect_to_db():
     return psycopg2.connect(
         dbname="MedicalRecord",
@@ -18,17 +18,18 @@ def connect_to_db():
         port="5432"
     )
 
-# Model for question input
+# Data model for the question input using Pydantic
 class QuestionRequest(BaseModel):
     question: str
 
-# Model for SQL execution
+# Data model for SQL execution input using Pydantic
 class SQLRequest(BaseModel):
     sql_query: str
 
-# Helper functions
+
+# Helper function to create a prompt for the LLM
 def create_sql_prompt(question):
-    schema_description = (
+    schema_description = (    ## Description of the database schema for the language model
        "The database schema includes the following tables:\n"
         "- Patient: Contains patient information, with fields such as id, name, family_name, given_name, gender, "
         "birth_date, telecom_email, telecom_sms, address_text, address_city, address_state, address_postal_code and address_country.\n"
@@ -44,9 +45,11 @@ def create_sql_prompt(question):
         "The database is FHIR Compliant"
         "Use this schema to generate the PostGreSQL query in response to the question."
     )
-    return f"{schema_description}\n\nQuestion: '{question}'\nPlease output only the SQL query."
+    return f"{schema_description}\n\nQuestion: '{question}'\nPlease output only the SQL query." #Combine schema and question into a single prompt
 
+# Helper function to extract SQL query from the language model response
 def extract_sql_query(response_text):
+     # Regex to match SQL statements
     match = re.search(r"(SELECT|INSERT|UPDATE|DELETE|WITH|CREATE|DROP|ALTER)\s.*;", response_text, re.IGNORECASE | re.DOTALL)
     return match.group(0).strip() if match else None
 
@@ -54,13 +57,13 @@ def extract_sql_query(response_text):
 @app.post("/generate_sql")
 async def generate_sql(request: QuestionRequest):
     prompt = create_sql_prompt(request.question)
-    response = client.chat.completions.create(
-        model="llama3-8b-8192",
+    response = client.chat.completions.create( ## Send the prompt to the language model via Groq API
+        model="llama3-8b-8192",    ## Model to use
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.2
+        temperature=0.2     # Temperature for model response
     )
-    response_text = response.choices[0].message.content
-    sql_query = extract_sql_query(response_text)
+    response_text = response.choices[0].message.content    # Extract the response content
+    sql_query = extract_sql_query(response_text)           # Extract the SQL query from the response
     if not sql_query:
         raise HTTPException(status_code=400, detail="Failed to generate SQL query.")
     return {"sql_query": sql_query}
@@ -68,16 +71,16 @@ async def generate_sql(request: QuestionRequest):
 # Route to execute SQL query
 @app.post("/execute_query")
 async def execute_query(request: SQLRequest):
-    connection = connect_to_db()
+    connection = connect_to_db()    # Connect to the PostgreSQL database
     cursor = connection.cursor()
     try:
         cursor.execute(request.sql_query)
-        rows = cursor.fetchall()
-        column_names = [desc[0] for desc in cursor.description]
-        result = [dict(zip(column_names, row)) for row in rows]
+        rows = cursor.fetchall()                                   # Fetch all rows from the executed query
+        column_names = [desc[0] for desc in cursor.description]    # Get column names from the cursor description
+        result = [dict(zip(column_names, row)) for row in rows]    # Combine column names and row data into a dictionary
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error executing SQL: {str(e)}")
-    finally:
+    finally:    
         cursor.close()
-        connection.close()
-    return {"results": result}
+        connection.close()     # Ensure database connection is closed
+    return {"results": result}    ## Return the query results as a JSON response
