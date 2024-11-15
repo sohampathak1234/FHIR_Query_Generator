@@ -44,6 +44,7 @@ The **FHIR Query Generator** project allows users to generate SQL queries from n
     ```sql
     CREATE USER fhir_user WITH PASSWORD 'yourpassword';
     GRANT ALL PRIVILEGES ON DATABASE MedicalRecord TO fhir_user;
+    ```
 
     3. Update the connection details in app.py and parse.py.
 
@@ -62,9 +63,9 @@ The **FHIR Query Generator** project allows users to generate SQL queries from n
     Start the Backend:
     ```bash
     python app.py
-
+   ```
     Start the Frontend:
     ```bash
     streamlit run frontend.py
-
+   ```
 
