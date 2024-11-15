@@ -1,4 +1,4 @@
-# FHIR Query Generator
+# FHIR Query Generator 🔥
 
 The **FHIR Query Generator** project allows users to generate SQL queries from natural language inputs to interact with a PostgreSQL database. It is designed to work with FHIR-compliant NDJSON medical records, enabling efficient data processing, querying, and visualization.
 
@@ -28,3 +28,43 @@ The **FHIR Query Generator** project allows users to generate SQL queries from n
    ```bash
    git clone https://github.com/your-repo/fhir-query-generator.git
    cd fhir-query-generator
+
+2. Install Dependencies
+    ```bash
+    pip install -r requirements.txt
+
+3. Set Up PostgreSQL
+
+    1. Create a new PostgreSQL database:
+    ```sql
+    CREATE DATABASE MedicalRecord;
+    ```
+
+    2. Create a user and grant permissions:
+    ```sql
+    CREATE USER fhir_user WITH PASSWORD 'yourpassword';
+    GRANT ALL PRIVILEGES ON DATABASE MedicalRecord TO fhir_user;
+
+    3. Update the connection details in app.py and parse.py.
+
+    4. Import FHIR Data
+    Run the parsing script to populate the database:
+    ```bash
+    python parse.py --file medical_record_fhir.json
+    ```
+
+    OR
+
+    Import MedicalRecord.sql into PostgreSQL
+
+4. Start the Application
+
+    Start the Backend:
+    ```bash
+    python app.py
+
+    Start the Frontend:
+    ```bash
+    streamlit run frontend.py
+
+
