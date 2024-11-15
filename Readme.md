@@ -69,3 +69,6 @@ The **FHIR Query Generator** project allows users to generate SQL queries from n
     streamlit run frontend.py
    ```
 
+## Result
+
+   [![Video]](https://drive.google.com/file/d/1ADY8kCZH6At90DDXV8XZ7fNgtUqZslPm/view?usp=sharing)
