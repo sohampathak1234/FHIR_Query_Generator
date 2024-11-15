@@ -4,24 +4,24 @@ from psycopg2 import sql
 
 # Database connection setup
 conn = psycopg2.connect(
-    dbname="MedicalRecord",
-    user="postgres",
-    password="password",
-    host="localhost",
-    port="5432"
-)
-cur = conn.cursor()
+    dbname="MedicalRecord",    # Name of the database
+    user="postgres",           # Username for the database
+    password="password",       # Password for the database user
+    host="localhost",          # Host where the database is running
+    port="5432"                # Port number of the database
+)    
+cur = conn.cursor()    # Create a cursor object to execute SQL queries
 
 # Load the JSON data
 file_path = 'medical_record_fhir.json'
 with open(file_path, 'r') as f:
-    data = json.load(f)
+    data = json.load(f)    # Load the JSON data into a Python dictionary
 
 # Insert data into PostgreSQL tables
 for patient in data["patients"]:
     # Insert into Patient table
-    patient_id = patient["id"]
-    cur.execute("""
+    patient_id = patient["id"]    # Insert patient information into the Patient table
+    cur.execute("""    
         INSERT INTO Patient (id, name, family_name, given_name, gender, birth_date, telecom_email, telecom_sms, address_text, address_city, address_state, address_postal_code, address_country)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
@@ -30,8 +30,8 @@ for patient in data["patients"]:
          patient["address"]["state"], patient["address"]["postalCode"], patient["address"]["country"])
     )
 
-    # Insert into Condition table
-    for condition in patient["conditions"]:
+    # Insert patient conditions into the Condition table
+    for condition in patient["conditions"]:    
         cur.execute("""
             INSERT INTO Condition (id, identifier_value, clinical_status_code, verification_status_code, code, subject_reference, onset_datetime)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -40,8 +40,8 @@ for patient in data["patients"]:
              patient_id, condition["onsetDateTime"])
         )
 
-    # Insert into Observation table
-    for observation in patient["observations"]:
+     # Insert patient observations (e.g., vital signs) into the Observation table
+    for observation in patient["observations"]:    
         systolic = observation["component"][0]["valueQuantity"]
         diastolic = observation["component"][1]["valueQuantity"]
         cur.execute("""
@@ -52,7 +52,7 @@ for patient in data["patients"]:
              observation["effectiveDateTime"], systolic, diastolic)
         )
 
-    # Insert into Medication table
+     # Insert patient medications into the Medication table
     for medication in patient["medications"]:
         cur.execute("""
             INSERT INTO Medication (id, code, form_code, dose, frequency)
@@ -61,7 +61,7 @@ for patient in data["patients"]:
             (medication["id"], medication["code"]["text"], medication["form"], medication["dose"], medication["frequency"])
         )
 
-    # Insert into CarePlan table
+    # Insert patient care plans into the CarePlan table
     for care_plan in patient["carePlan"]:
         cur.execute("""
             INSERT INTO CarePlan (id, title, description, status, intent, subject_reference)
@@ -70,7 +70,7 @@ for patient in data["patients"]:
             (care_plan["id"], care_plan["title"], care_plan["description"], care_plan["status"], care_plan["intent"], patient_id)
         )
 
-    # Insert into BodyStructure table
+    # Insert patient body structure data into the BodyStructure table
     for body_structure in patient.get("bodyStructure", []):
         cur.execute("""
             INSERT INTO BodyStructure (id, identifier_value, morphology_code, morphology_text, location_code, location_text, description, patient_reference)
