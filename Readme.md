@@ -62,7 +62,7 @@ The **FHIR Query Generator** project allows users to generate SQL queries from n
 
     Start the Backend:
     ```bash
-    python app.py
+    uvicorn app:app --reload    
    ```
     Start the Frontend:
     ```bash
