@@ -6,7 +6,7 @@ from groq import Groq
 
 # Initialize FastAPI app and Groq client
 app = FastAPI()
-client = Groq(api_key="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")
+client = Groq(api_key="GROQ_API_KEY")
 
 # Function to establish connection to the PostgreSQL database
 def connect_to_db():
